@@ -17,7 +17,7 @@ currentYear = int(datetime.date.today().year) - 2000
 currentWeek= datetime.date.isocalendar(datetime.date.today())[1]
 
 #FILES
-ORDER_FILE = 'TestWeek2.csv'    #Exported from WordPress
+ORDER_FILE = 'TestWeek3.csv'    #Exported from WordPress
 PAST_ORDER_FILE = str(currentYear) + str(currentWeek - 1) + '.xlsx'
 MENU_FILE = 'Menu.xlsx'
 INGREDIENTS_FILE = 'Ingredient and meal costing1.xlsx'
@@ -253,8 +253,8 @@ print(Customs)
 
 # ----------------------------------------------------------------------
 # Save POrds to an excel sheet so we can look back on historical data
-def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
-                       truncate_sheet=False, 
+def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None, startcol=None,
+                       truncate_sheet=False, header=True,
                        **to_excel_kwargs):
     """
     Append a DataFrame [df] to existing Excel file [filename]
@@ -314,10 +314,11 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
 
     if startrow is None:
         startrow = 0
+    if startcol is None:
+        startcol = 0
 
     # write out the new sheet
-    df.to_excel(writer, sheet_name, startrow=startrow, **to_excel_kwargs)
-
+    df.to_excel(writer, sheet_name, startrow=startrow, startcol=startcol, **to_excel_kwargs, header=header)
     # save the workbook
     writer.save()
     
@@ -330,14 +331,18 @@ append_df_to_excel(str(currentYear) + str(currentWeek) + '.xlsx', Customs, start
 # Write to 'Ingredient and Meal costing1.xlsx'
 
 IngredientExcel = pd.read_excel(INGREDIENTS_FILE, sheet_name='Chosen Meals')
-quantities = IngredientExcel.iloc[1:43,[3]]
-meals = IngredientExcel.iloc[1:43,[2]]
+quantities = IngredientExcel['Unnamed: 3']
+meals = IngredientExcel['Unnamed: 2']
 
 #iterate through POrds adding quantities
 def add_quantities_to_Ingredient_Sheet(mealType, mealQuantity):
     for i in range(10):
-        for j in range(1, 43):
-            if (POrds.at[i, mealType] == meals.at[j, 'Unnamed: 2']):
-                quantities.at[j, 'Unnamed: 3'] = POrds.at[i, mealQuantity]
+        for j in range(3, 45):
+            if (POrds.at[i, mealType] == meals.at[j]):
+                quantities.at[j] = POrds.at[i, mealQuantity]
 
 add_quantities_to_Ingredient_Sheet('Classic', 'numC')
+add_quantities_to_Ingredient_Sheet('Asian', 'numA')
+
+append_df_to_excel(INGREDIENTS_FILE, quantities, sheet_name='Chosen Meals', startcol=3, startrow=1, index=False, header=False)
+
