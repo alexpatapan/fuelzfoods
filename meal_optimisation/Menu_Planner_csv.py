@@ -1,6 +1,6 @@
 
 import pandas as pd
-from datetime import date
+import datetime
 import numpy as np
 import openpyxl as oxl
 from random import seed
@@ -12,16 +12,18 @@ random.seed();
 np.set_printoptions(threshold=sys.maxsize)
 pd.set_option('display.max_colwidth', 30)
 
-#Files AND Current Week
-ORDER_FILE = 'TestWeek2.csv'
-PAST_ORDER_FILE = "Historical Orders.xlsx"
-currentWeek=2
+#Current Week
+currentYear = int(datetime.date.today().year) - 2000
+currentWeek= datetime.date.isocalendar(datetime.date.today())[1]
+
+#FILES
+ORDER_FILE = 'TestWeek2.csv'    #Exported from WordPress
+PAST_ORDER_FILE = str(currentYear) + str(currentWeek - 1) + '.xlsx'
+MENU_FILE = 'Menu.xlsx'
+INGREDIENTS_FILE = 'Ingredient and meal costing1.xlsx'
 
 # ----------------------------------------------------------------------
 # Creating data frame from csv of todays date 
-
-today=date.today()
-OrderDate=today.strftime("%Y-%m-%d")
 
 CSVOrderFile=ORDER_FILE
 df=pd.read_csv(CSVOrderFile)
@@ -100,17 +102,17 @@ HistoricalWeek1=pd.DataFrame(np.zeros((10, 4)), columns=['Classic', 'numC', 'Asi
 
 
 OMR=oxl.load_workbook(filename=PAST_ORDER_FILE)
-sheet=OMR['Week ' + str(currentWeek - 1)]
+sheet = OMR['Sheet1']
 
-def populateHistoricalOrders(HistoricalWeek, weeknum, excelColumn1, excelColumn2, orderColumn1, orderColumn2):
+def populateHistoricalOrders(HistoricalWeek, excelColumn1, excelColumn2, orderColumn1, orderColumn2):
     inc = 0
-    for i in range(weeknum*11+2, (weeknum+1)*11+1):
-        HistoricalWeek.at[inc, orderColumn1]=sheet[excelColumn1+str(i)].value
-        HistoricalWeek.at[inc, orderColumn2]=sheet[excelColumn2+str(i)].value
+    for i in range(2, 12):
+        HistoricalWeek.at[inc, orderColumn1]=sheet[excelColumn1 + str(i)].value
+        HistoricalWeek.at[inc, orderColumn2]=sheet[excelColumn2 + str(i)].value
         inc += 1
 weeknum = 0
-populateHistoricalOrders(HistoricalWeek1, weeknum, 'A', 'B', 'Classic', 'numC')
-populateHistoricalOrders(HistoricalWeek1, weeknum, 'C', 'D', 'Asian', 'numA')
+populateHistoricalOrders(HistoricalWeek1, 'A', 'B', 'Classic', 'numC')
+populateHistoricalOrders(HistoricalWeek1, 'C', 'D', 'Asian', 'numA')
 
 # ----------------------------------------------------------------------
 # Make list of custom order dishes for this week (cusomOrders)
@@ -123,7 +125,7 @@ for i, j in enumerate(df['Plan?']):
 
 #----------------------------------------------------------------------
 # Loading whole menu into a dictionary (mealMenu), Types: V=Veg, R=Red meant, C=Chicken
-OMR=oxl.load_workbook(filename=PAST_ORDER_FILE)
+OMR=oxl.load_workbook(filename=MENU_FILE)
 sheet=OMR['Menus']
 
 data=sheet.values
@@ -320,12 +322,22 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
     writer.save()
     
 #Call the function
-append_df_to_excel(PAST_ORDER_FILE, POrds, sheet_name='Week ' + str(currentWeek), startrow=0, index=False)
+append_df_to_excel(str(currentYear) + str(currentWeek) + '.xlsx', POrds, startrow=0, index=False)
+append_df_to_excel(str(currentYear) + str(currentWeek) + '.xlsx', Customs, startrow=13, index=False)
 
 
 # ----------------------------------------------------------------------
 # Write to 'Ingredient and Meal costing1.xlsx'
 
-IngredientExcel = pd.read_excel('Ingredient and meal costing1.xlsx', sheet_name='Chosen Meals')
-Quantities = IngredientExcel.iloc[1:33,[3]]
-Meals = IngredientExcel.iloc[1:33,[2]]
+IngredientExcel = pd.read_excel(INGREDIENTS_FILE, sheet_name='Chosen Meals')
+quantities = IngredientExcel.iloc[1:43,[3]]
+meals = IngredientExcel.iloc[1:43,[2]]
+
+#iterate through POrds adding quantities
+def add_quantities_to_Ingredient_Sheet(mealType, mealQuantity):
+    for i in range(10):
+        for j in range(1, 43):
+            if (POrds.at[i, mealType] == meals.at[j, 'Unnamed: 2']):
+                quantities.at[j, 'Unnamed: 3'] = POrds.at[i, mealQuantity]
+
+add_quantities_to_Ingredient_Sheet('Classic', 'numC')
