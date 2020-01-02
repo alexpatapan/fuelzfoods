@@ -18,8 +18,10 @@ class Window(object):
         self.master = master
         self.directory = None
 
+        self.historicalFile = Menu_Planner_csv.getLastWeek()
+
         self.start_btn = tk.Button(self.header, text="Start", command=self.start_pressed, height=2, width=9)
-        self.load_btn = tk.Button(self.header, text='Load Files', command=self.load_file_pressed, height=2, width=9)
+        self.load_btn = tk.Button(self.header, text='Load CSV File', command=self.load_file_pressed, height=2, width=12)
         self.start_btn.pack(side=tk.LEFT, pady=25, padx=50)
         self.load_btn.pack(side=tk.RIGHT, pady=25, padx=50)
 
@@ -29,19 +31,15 @@ class Window(object):
         self.infotext = tk.Label(self.mainFrame, text="Please select a CSV file for the orders", font="-weight bold")
         self.infotext.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, padx=20, pady=20)
         self.weekLabel = tk.Label(self.mainFrame, text="We are currently on week " + Menu_Planner_csv.getCurrentWeek()
-                                  + '\n and we will be using ' + Menu_Planner_csv.getLastWeek() + '.xlsx for history')
+                                  + '\n and we will be using ' + self.historicalFile + '.xlsx for history')
         self.weekLabel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, padx=20, pady=20)
+        self.weekLabel.bind("<Button-1>", self.weekonclick)
+        
         self.runningLabel = tk.Label(self.mainFrame)
         self.runningLabel.pack(side=tk.TOP)
 
-
-        #self.canvas=tk.Canvas(self.mainFrame,width=400,height=300, scrollregion=(0,0,800,800))
-        #self.canvas.config(width=400,height=300)
-        #self.canvas.pack()
         self.bottomFrame = tk.Frame(self.mainFrame)
-        #scrollbar = tk.Scrollbar(self.bottomFrame)
-        #scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.bottomFrame.pack()
+        self.bottomFrame.pack(fill=tk.Y)
         
 
         mealsText = "Open Meal Excel File (" + Menu_Planner_csv.getCurrentWeek() + ".xlsx)"
@@ -53,21 +51,44 @@ class Window(object):
         
         self.maxNumCustoms = 10
         self.make_table()
-                  
-                
-        self.table.pack(pady=30)
-        
 
+    def weekonclick(self, event):
+        self.historicalFile = tk.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("CSV file","*.csv"), ("All Files","*.*")))
+        self.weekLabel.config(text="We are currently on week " + Menu_Planner_csv.getCurrentWeek()
+                                  + '\n and we will be using ' + self.historicalFile + '.xlsx for history')
+
+    def onFrameConfigure(self, event):
+        '''Reset the scroll region to encompass the inner frame'''
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))          
+        
+    """
+    Generte an empty table
+    """
     def make_table(self):
-        self.table = tk.Frame(self.bottomFrame)
+        
+        self.canvas=tk.Canvas(self.bottomFrame,width=900,height=250)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=20)
+        
+        self.table = tk.Frame(self.canvas)
+        self.scrollbar = tk.Scrollbar(self.bottomFrame, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y, pady=32)
+
+        self.canvas.config(yscrollcommand=self.scrollbar.set)
+        self.canvas.create_window((4,4), window=self.table, anchor="nw", 
+                                  tags="self.table")
+        self.table.bind("<Configure>", self.onFrameConfigure)
+
         self.mealsTable = {}
         for x in range(6):
             for y in range(11): 
-                self.mealsTable[(x,y)] = tk.Label(self.table, text=str(x) + "," + str(y), borderwidth=1, relief="solid")
+                self.mealsTable[(x,y)] = tk.Label(self.table, text="-", borderwidth=1, relief="solid")
                 self.mealsTable[(x,y)].grid(column=x, row=y, sticky="nsew")
 
                 if (x == 3 or x == 1):
                     self.mealsTable[(x,y)].grid(padx=(0,50))
+
+                if (x % 2 == 0):
+                    self.mealsTable[(x,y)].config(width=25)
 
         self.mealsTable[(0,0)].config(text="Classic", font="-weight bold")
         self.mealsTable[(1,0)].config(text="Num", font="-weight bold")
@@ -141,7 +162,7 @@ class Main(object):
         self._master = master
         self._master.title("Meal Picker")
         self._master.geometry("600x260")
-        self._master.minsize("750","610")
+        self._master.minsize("930","610")
         app = Window(master)
         
 
