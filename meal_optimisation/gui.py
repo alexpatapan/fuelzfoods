@@ -4,6 +4,8 @@ from functools import partial
 import Menu_Planner_csv
 import subprocess
 import os
+import sys
+import math
 
 class Window(object):
     """
@@ -24,43 +26,122 @@ class Window(object):
         self.header.pack(side=tk.TOP, fill=tk.BOTH)
         self.mainFrame.pack(fill=tk.BOTH, expand=1)
 
-        self.infotext = tk.Label(self.mainFrame, text="Please select a CSV file for the orders")
+        self.infotext = tk.Label(self.mainFrame, text="Please select a CSV file for the orders", font="-weight bold")
         self.infotext.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, padx=20, pady=20)
         self.weekLabel = tk.Label(self.mainFrame, text="We are currently on week " + Menu_Planner_csv.getCurrentWeek()
-                                  + '\n and we will be using week ' + Menu_Planner_csv.getLastWeek() + ' for history')
+                                  + '\n and we will be using ' + Menu_Planner_csv.getLastWeek() + '.xlsx for history')
         self.weekLabel.pack(side=tk.TOP, anchor=tk.W, fill=tk.BOTH, padx=20, pady=20)
         self.runningLabel = tk.Label(self.mainFrame)
         self.runningLabel.pack(side=tk.TOP)
 
+
+        #self.canvas=tk.Canvas(self.mainFrame,width=400,height=300, scrollregion=(0,0,800,800))
+        #self.canvas.config(width=400,height=300)
+        #self.canvas.pack()
         self.bottomFrame = tk.Frame(self.mainFrame)
-        self.linkLabel = tk.Button(self.bottomFrame, text="Meal Excel File", command= self.openExcel)
-        self.linkLabel.pack(side=tk.RIGHT)
+        #scrollbar = tk.Scrollbar(self.bottomFrame)
+        #scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.bottomFrame.pack()
+        
+
+        mealsText = "Open Meal Excel File (" + Menu_Planner_csv.getCurrentWeek() + ".xlsx)"
+        self.mealsBtn = tk.Button(self.bottomFrame, text=mealsText, command= self.openMealExcel)
+        self.mealsBtn.pack(side=tk.TOP)
+        ingredientsText = "Open Ingredients Excel File (Ingredient and meal costing1.xlsx)"
+        self.ingredientsBtn = tk.Button(self.bottomFrame, text=ingredientsText, command= self.openIngredientExcel)
+        self.ingredientsBtn.pack(side=tk.TOP)
+        
+        self.maxNumCustoms = 10
+        self.make_table()
+                  
+                
+        self.table.pack(pady=30)
+        
+
+    def make_table(self):
+        self.table = tk.Frame(self.bottomFrame)
+        self.mealsTable = {}
+        for x in range(6):
+            for y in range(11): 
+                self.mealsTable[(x,y)] = tk.Label(self.table, text=str(x) + "," + str(y), borderwidth=1, relief="solid")
+                self.mealsTable[(x,y)].grid(column=x, row=y, sticky="nsew")
+
+                if (x == 3 or x == 1):
+                    self.mealsTable[(x,y)].grid(padx=(0,50))
+
+        self.mealsTable[(0,0)].config(text="Classic", font="-weight bold")
+        self.mealsTable[(1,0)].config(text="Num", font="-weight bold")
+        self.mealsTable[(2,0)].config(text="Asian", font="-weight bold")
+        self.mealsTable[(3,0)].config(text="Num", font="-weight bold")
+        self.mealsTable[(4,0)].config(text="Customs", font="-weight bold")
+        self.mealsTable[(5,0)].config(text="Num", font="-weight bold")
         
     def start_pressed(self):
         if not(self.directory is None):
             self.runningLabel.config(text="Running...")
             Menu_Planner_csv.main(self.directory)
+            
+            
+            self.populate_table()
+
             self.runningLabel.config(text="Done!")
+        else:
+            self.infotext.config(fg="red")
 
 
     def load_file_pressed(self):
         self.directory = tk.filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("CSV file","*.csv"), ("All Files","*.*")))
-        self.infotext.config(text= 'We are using \'' + self.directory + '\' for this weeks orders.')
+        self.infotext.config(text= 'We are using \'' + self.directory + '\' for this weeks orders.', fg="black", font="-weight normal")
 
-    def openExcel(self):
-        print("a")
-        #os.system('start "excel" \"' + Menu_Planner_csv.getCurrentWeek() + '\".xlsx')
-        os.system('start "excel" "1952.xlsx"')
+    def openMealExcel(self):
+        os.system('open ' + Menu_Planner_csv.getCurrentWeek() + ".xlsx")
         
+    def openIngredientExcel(self):
+        os.system('open "Ingredient and meal costing1.xlsx"')
 
+    def populate_table(self):
+        POrds = Menu_Planner_csv.getPOrds()
+        Customs = Menu_Planner_csv.getCustoms()
+        print(Menu_Planner_csv.getCustomsLen())
+
+        self.clean_table()
+
+        for i in range(1, 11):
+            self.mealsTable[(0,i)].config(text = POrds.at[i-1, 'Classic'])
+            self.mealsTable[(1,i)].config(text = str(int(POrds.at[i-1, 'numC'])))
+            self.mealsTable[(2,i)].config(text = POrds.at[i-1, 'Asian'])
+            self.mealsTable[(3,i)].config(text = str(int(POrds.at[i-1, 'numA'])))
+
+        if (Menu_Planner_csv.getCustomsLen() > 9):
+            if (self.maxNumCustoms < Menu_Planner_csv.getCustomsLen()):
+                self.maxNumCustoms = Menu_Planner_csv.getCustomsLen()
+                
+            for j in range(11, Menu_Planner_csv.getCustomsLen()+1):
+                self.mealsTable[(4, j)] = tk.Label(self.table, text="," + str(j), borderwidth=1, relief="solid")
+                self.mealsTable[(5, j)] = tk.Label(self.table, text="," + str(j), borderwidth=1, relief="solid")
+                
+                self.mealsTable[(4,j)].grid(column=4, row=j, sticky="nsew")
+                self.mealsTable[(5,j)].grid(column=5, row=j, sticky="nsew")
+
+        for i in range(1, Menu_Planner_csv.getCustomsLen()+1):
+            self.mealsTable[(4,i)].config(text = str(Customs.at[i-1, 'Customs']))
+            self.mealsTable[(5,i)].config(text = str(int(Customs.at[i-1, 'numCust'])))
         
+    def clean_table(self):
+        for x in range(1,6):
+            for y in range(1,11): 
+                self.mealsTable[(x,y)].config(text='-')
+
+        for i in range(1, max(self.maxNumCustoms+1, 10)):
+            self.mealsTable[(4,i)].config(text = "-")
+            self.mealsTable[(5,i)].config(text = "-")
+                
 class Main(object):
     def __init__(self, master):
         self._master = master
         self._master.title("Meal Picker")
         self._master.geometry("600x260")
-        self._master.minsize("200","300")
+        self._master.minsize("750","610")
         app = Window(master)
         
 

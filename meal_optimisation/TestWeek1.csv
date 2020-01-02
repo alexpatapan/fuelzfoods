@@ -1,0 +1,17 @@
+Order Number,Order Status,First Name (Billing),Last Name (Billing),Phone,Address 1&2 (Shipping),Item Name,Product Variation,Quantity,Order Total Amount
+7495,Processing,Dan,Rice,401266077,"75, Greenslade Street",Subscription Plan,Meals per day (Monday to Friday): 1 | Collection Method: Collection Monday 10am (At UQ St. Lucia),1,32.5
+7485,Processing,Scott,Coggan,409444593,"Plateau crescent, 71",Fusion Meal Plan,"Meals Per Day: 2 | Collection Method: Sunday Home Delivery (For St. Lucia, Toowong, Indooroopilly, Southbank, CBD, &amp; Fortitude Valley residents)",1,100
+7485,Processing,Scott,Coggan,409444593,"Plateau crescent, 71",Tarragon Chicken,,1,100
+7485,Processing,Scott,Coggan,409444593,"Plateau crescent, 71",Bacon Carbonara,,2,100
+7485,Processing,Scott,Coggan,409444593,"Plateau crescent, 71",Macaroni Cheese,,1,100
+7483,Processing,Dale,Leech,405824292,116 Dell Road,Fusion Meal Plan,"Meals Per Day: 1 | Collection Method: Sunday Home Delivery (For St. Lucia, Toowong, Indooroopilly, Southbank, CBD, &amp; Fortitude Valley residents) | _synced_sign_up_fee: 10",1,34.5
+7481,Processing,Tao,Lai,488224266,"9 durham street, Unit 6",Fusion Meal Plan,"Meals Per Day: 2 | Collection Method: Sunday Home Delivery (For St. Lucia, Toowong, Indooroopilly, Southbank, CBD, &amp; Fortitude Valley residents)",1,70
+7479,Processing,Dalton,Ngu,422119215,"19 Tank Street, Kelvin Grove, U408",Subscription Plan,Meals per day (Monday to Friday): 2 | Collection Method: Collection Monday 10am (At UQ St. Lucia),1,32.5
+7485,,,,,,Tarragon Chicken,,1,
+7485,,,,,,Baked Drumsticks with Potato Bake,,5,
+7485,,,,,,Veggie Chow Mein,,3,
+7485,,,,,,Tonkatsu Pork,,1,
+7483,,,,,,Baked Drumsticks with Potato Bake,,3,
+7485,,,,,,Beef Stroganoff,,1,
+7485,,,,,,Lasagne,,1,
+7485,,,,,,Citrus Chicken and Vegetables,,1,
