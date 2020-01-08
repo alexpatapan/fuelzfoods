@@ -1,5 +1,5 @@
 # FuelzFoods: Meal Packages for Students
 Software Internship - Backend Development
 
-This program reads in order data exported from the company website and uses an algorithm developed to determine the optimal choice of 
+This program reads in order data exported from the company website and uses an algorithm to determine the optimal choice of 
 products to send customers subscribed to the randomised subscription plan. A GUI was also developed for ease of use.
